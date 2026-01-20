@@ -1,7 +1,8 @@
 TEMPLATE = app
 TARGET = sioyek
 VERSION = 2.0.0
-INCLUDEPATH += ./pdf_viewer\
+INCLUDEPATH += . \
+              ./pdf_viewer\
               mupdf/include \
               zlib
           
@@ -50,7 +51,13 @@ HEADERS += pdf_viewer/book.h \
            pdf_viewer/synctex/synctex_parser.h \
            pdf_viewer/synctex/synctex_parser_utils.h \
            pdf_viewer/RunGuard.h \
-           pdf_viewer/OpenWithApplication.h
+           pdf_viewer/OpenWithApplication.h \
+           plugins/dictionary_integration/dictionary_api.h \
+           plugins/dictionary_integration/english_dict_fetcher.h \
+           plugins/gemini_integration/gemini_client.h \
+           plugins/quizlet_export/quizlet_exporter.h \
+           plugins/vocabulary_manager/vocabulary_manager.h \
+           plugins/vocabulary_manager/vocab_integration.h
 
 SOURCES += pdf_viewer/book.cpp \
            pdf_viewer/config.cpp \
@@ -72,7 +79,12 @@ SOURCES += pdf_viewer/book.cpp \
            pdf_viewer/synctex/synctex_parser.c \
            pdf_viewer/synctex/synctex_parser_utils.c \
            pdf_viewer/RunGuard.cpp \
-           pdf_viewer/OpenWithApplication.cpp
+           pdf_viewer/OpenWithApplication.cpp \
+           plugins/dictionary_integration/english_dict_fetcher.cpp \
+           plugins/gemini_integration/gemini_client.cpp \
+           plugins/quizlet_export/quizlet_exporter.cpp \
+           plugins/vocabulary_manager/vocabulary_manager.cpp \
+           plugins/vocabulary_manager/vocab_integration.cpp
 
 
 win32{

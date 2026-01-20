@@ -7,9 +7,14 @@
 #include <qkeyevent.h>
 #include <qstring.h>
 #include <qstringlist.h>
+#include <qfiledialog.h>
+#include <qvector.h>
+#include <qguiapplication.h>
 #include "input.h"
 #include "main_widget.h"
 #include "ui.h"
+#include "plugins/vocabulary_manager/vocab_integration.h"
+#include "plugins/quizlet_export/quizlet_exporter.h"
 
 extern bool SHOULD_WARN_ABOUT_USER_KEY_OVERRIDE;
 extern bool USE_LEGACY_KEYBINDS;
@@ -186,6 +191,22 @@ class RegexSearchCommand : public TextCommand {
 	std::string text_requirement_name() {
 		return "regex";
 	}
+};
+
+class ExportQuizletCommand : public Command {
+	void perform(MainWidget* widget) {
+		// Use widget as parent for dialog if available
+		QWidget* parent = widget ? widget : nullptr;
+		auto* vm = VocabIntegration::instance().vocab();
+		QVector<VocabularyEntry> all = vm->getAllWords();
+		QuizletExporter exporter;
+		QString csv = exporter.exportToQuizletCSV(all, "Vocabulary");
+		QString path = QFileDialog::getSaveFileName(parent, "Save Quizlet CSV", "vocabulary.csv", "CSV Files (*.csv)");
+		if (!path.isEmpty()) {
+			exporter.saveToFile(csv, path, "csv");
+		}
+	}
+	std::string get_name() { return "export_quizlet"; }
 };
 
 class AddBookmarkCommand : public TextCommand {
@@ -2197,6 +2218,7 @@ CommandManager::CommandManager(ConfigManager* config_manager) {
 	new_commands["search"] = []() {return std::make_unique< SearchCommand>(); };
 	new_commands["regex_search"] = []() {return std::make_unique< RegexSearchCommand>(); };
 	new_commands["chapter_search"] = []() {return std::make_unique< ChapterSearchCommand>(); };
+	new_commands["export_quizlet"] = []() {return std::make_unique< ExportQuizletCommand>(); };
 	new_commands["move_down"] = []() {return std::make_unique< MoveDownCommand>(); };
 	new_commands["move_up"] = []() {return std::make_unique< MoveUpCommand>(); };
 	new_commands["move_left"] = []() {return std::make_unique< MoveLeftCommand>(); };

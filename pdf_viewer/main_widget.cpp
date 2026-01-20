@@ -54,6 +54,7 @@
 #include "path.h"
 
 #include "main_widget.h"
+#include "plugins/vocabulary_manager/vocab_integration.h"
 
 
 extern bool SHOULD_USE_MULTIPLE_MONITORS;
@@ -1665,10 +1666,24 @@ void MainWidget::mouseReleaseEvent(QMouseEvent* mevent) {
         }
         else {
 			handle_left_click({ mevent->pos().x(), mevent->pos().y() }, false, is_shift_pressed, is_control_pressed, is_alt_pressed);
-			if (is_select_highlight_mode && (main_document_view->selected_character_rects.size() > 0)) {
-				main_document_view->add_highlight(selection_begin, selection_end, select_highlight_type);
+            if (is_select_highlight_mode && (main_document_view->selected_character_rects.size() > 0)) {
+                // Add highlight
+                main_document_view->add_highlight(selection_begin, selection_end, select_highlight_type);
+
+                // Trigger vocabulary/dictionary integration for single-word highlights
+                // Extract selected text again via DocumentView to ensure accuracy
+                std::vector<fz_rect> _dummyRects; std::wstring selText;
+                main_document_view->get_text_selection(selection_begin, selection_end, true, _dummyRects, selText);
+                try {
+                    // Compute page number from selection_begin
+                    int pageNum = doc()->get_offset_page_number(selection_begin.y);
+                    VocabIntegration::instance().onTextHighlighted(this, selText, doc()->get_path(), pageNum);
+                } catch (...) {
+                    // best-effort only
+                }
+
                 clear_selected_text();
-			}
+            }
 			if (main_document_view->selected_character_rects.size() > 0) {
 				copy_to_clipboard(selected_text, true);
 			}
