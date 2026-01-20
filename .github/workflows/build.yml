@@ -42,7 +42,7 @@ jobs:
           # Target MSVC compiler and architecture
           arch: 'win64_msvc2019_64'
           # Caching makes subsequent builds faster
-          cached: 'true'
+          cache: 'true'
 
       - name: Build the application
         # This is the main step. It runs our automated build script.
