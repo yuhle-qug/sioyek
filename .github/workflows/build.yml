@@ -1,0 +1,62 @@
+# GitHub Actions workflow to build the Sioyek application for Windows
+# This file automates the entire build and packaging process.
+#
+# How it works:
+# 1. Triggered on a push to the main branch or manually.
+# 2. Sets up a Windows virtual machine.
+# 3. Installs the correct version of Qt.
+# 4. Checks out the source code.
+# 5. Runs the `build_windows.bat` script.
+# 6. If successful, it zips the final release folder.
+# 7. Uploads the zip file as an "artifact".
+#
+# You can then download this artifact from the "Actions" tab on GitHub.
+
+name: Build Sioyek for Windows
+
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+  # Triggers the workflow on push events but only for the "main" branch
+  push:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+        with:
+          # Required to fetch submodules like mupdf
+          submodules: 'recursive'
+
+      - name: Install Qt
+        # This action downloads and installs a specific version of Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          # Version should match what the project was developed with
+          version: '5.15.2'
+          # Target MSVC compiler and architecture
+          arch: 'win64_msvc2019_64'
+          # Caching makes subsequent builds faster
+          cached: 'true'
+
+      - name: Build the application
+        # This is the main step. It runs our automated build script.
+        # The script will find Visual Studio, Qt, and then compile everything.
+        run: .\\build_windows.bat
+        shell: cmd
+
+      - name: Package release into a Zip file
+        # After the build, we zip the output folder for easy download
+        run: 7z a -tzip sioyek-windows.zip .\\sioyek-release-windows\\*
+
+      - name: Upload build artifact
+        # This makes the final zip file available for download
+        uses: actions/upload-artifact@v4
+        with:
+          name: sioyek-windows-release
+          path: sioyek-windows.zip
